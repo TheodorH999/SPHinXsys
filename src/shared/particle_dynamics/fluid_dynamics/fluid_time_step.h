@@ -94,6 +94,22 @@ class AdvectionTimeStepSize : public AdvectionTimeStepSizeForImplicitViscosity
   protected:
     Fluid &fluid_;
 };
+//! In progress
+// /**
+//  * @class ViscousTimeStepSizeNonNewtonian
+//  * @brief Computing the advection time step size
+//  */
+// class ViscousTimeStepSizeNonNewtonian : public ViscousTimeStepSizeNonNewtonian
+// {
+//   public:
+//     explicit ViscousTimeStepSizeNonNewtonian(SPHBody &sph_body);
+//     virtual ~ViscousTimeStepSizeNonNewtonian(){};
+//     Real reduce(size_t index_i, Real dt = 0.0);
+
+//   protected:
+//     Fluid &fluid_;
+
+// };
 } // namespace fluid_dynamics
 } // namespace SPH
 #endif // FLUID_TIME_STEP_H

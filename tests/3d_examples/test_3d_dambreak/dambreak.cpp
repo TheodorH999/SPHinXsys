@@ -8,7 +8,7 @@
 using namespace SPH;
 
 // general parameters for geometry
-Real resolution_ref = 0.025;  // particle spacing
+Real resolution_ref = 0.05;   // particle spacing
 Real BW = resolution_ref * 4; // boundary width
 Real DL = 3.22;               // tank length
 Real DH = 1.0;                // tank height
@@ -20,10 +20,10 @@ Real LW = 1.0;                // liquid width
 // for material properties of the fluid
 Real rho0_f = 1.0;
 Real gravity_g = 9.81;
-Real U_f = 2.0 * sqrt(gravity_g * LH);
+Real U_f = sqrt(2.0 * gravity_g * LH);
 Real c_f = 10.0 * U_f;
 Real K = 1;
-Real n = 1;
+Real n = 0.8;
 Real yield_stress = 0;
 
 //	define the water block shape
@@ -81,7 +81,7 @@ int main(int ac, char *av[])
     //----------------------------------------------------------------------
     FluidBody water_block(sph_system, makeShared<WaterBlock>("WaterBody"));
     water_block.defineParticlesAndMaterial<BaseParticles, HerschelBulkleyFluid>(rho0_f, c_f, K, n, yield_stress, 0.001, 1000);
-    // water_block.defineParticlesAndMaterial<BaseParticles, WeaklyCompressibleFluid>(rho0_f, c_f, 1);
+    // water_block.defineParticlesAndMaterial<BaseParticles, WeaklyCompressibleFluid>(rho0_f, c_f, K);
     water_block.generateParticles<ParticleGeneratorLattice>();
 
     SolidBody wall_boundary(sph_system, makeShared<WallBoundary>("Wall"));
@@ -170,7 +170,9 @@ int main(int ac, char *av[])
         Real integration_time = 0.0;
         while (integration_time < output_interval)
         {
-            Real Dt = get_fluid_advection_time_step_size.exec() * 0.1;
+            Real Dt = get_fluid_advection_time_step_size.exec();
+            Real Dt_visc = 0.125 * resolution_ref * resolution_ref / 4;
+            Dt = SMIN(Dt, Dt_visc);
             update_density_by_summation.exec(Dt);
 
             //! Viscous Force Steps
@@ -184,10 +186,9 @@ int main(int ac, char *av[])
             Real relaxation_time = 0.0;
             while (relaxation_time < Dt)
             {
-
+                dt = SMIN(get_fluid_time_step_size.exec(), Dt);
                 pressure_relaxation.exec(dt);
                 density_relaxation.exec(dt);
-                dt = get_fluid_time_step_size.exec();
                 relaxation_time += dt;
                 integration_time += dt;
                 GlobalStaticVariables::physical_time_ += dt;
